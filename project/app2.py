@@ -16,7 +16,7 @@ def regression():
         swid = float(request.form['swid'])
         plen = float(request.form['plen'])
         pwid = float(request.form['pwid'])
-        species = -0.11191 * slen -0.04008 * swid + 0.22865 * plen + 0.60925 * pwid
+        species = 1.18650 -0.11191 * slen -0.04008 * swid + 0.22865 * plen + 0.60925 * pwid
         iris = {'slen':slen, 'swid':swid, 'plen':plen, 'pwid':pwid, 'species':round(species, 4)}
         return render_template('reg_result2.html', menu=menu, iris=iris)
 
