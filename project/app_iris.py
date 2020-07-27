@@ -68,7 +68,7 @@ def classification_iris():
         iris = {'slen':slen, 'swid':round(swid, 4), 'plen':plen, 'pwid':pwid, 
                 'species_lr':species_lr, 'species_svm':species_svm, 
                 'species_dt':species_dt, 'species_deep':species_deep}
-        return render_template('cla_iris_result.html', menu=menu)        
+        return render_template('cla_iris_result.html', menu=menu, iris=iris)        
 
 @app.route('/clustering')
 def clustering():
