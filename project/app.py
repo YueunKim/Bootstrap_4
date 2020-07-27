@@ -16,7 +16,7 @@ def regression():
         plen = float(request.form['plen'])
         pwid = float(request.form['pwid'])
         species = int(request.form['species'])
-        swid = 0.63711424 * slen - 0.535485016 * plen + 0.55807335 * pwid - 0.12647156 * species + 0.783
+        swid = 0.63711424 * slen - 0.535485016 * plen + 0.55807335 * pwid - 0.12647156 * species + 0.78264901
         names = ['Setosa', 'Versicolor', 'Virginica']
         species = names[species]
         iris = {'slen':slen, 'swid':round(swid, 4), 'plen':plen, 'pwid':pwid, 'species':species}
