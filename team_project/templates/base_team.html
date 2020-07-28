@@ -14,7 +14,7 @@
 <body>
     <nav class="navbar navbar-expand-lg bg-dark navbar-dark">
         <!-- Brand/logo -->
-        <a class="navbar-brand" style="margin-left:50px;margin-right:100px;" href="#">
+        <a class="navbar-brand" style="margin-top:5px;margin-left:50px;margin-right:100px;" href="#">
             <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Logo" style="height:45px;">
         </a>
 
@@ -46,10 +46,6 @@
                         <a class="nav-link {% if menu.stmt %}active{% endif %}"
                             href="{% if menu.stmt %}#{% else %}/sentiment{% endif %}">감성분석</a>
                     </li>
-                    <!--<li class="nav-item"></li>
-                        <a class="nav-link {% if menu.clsf %}active{% endif %}" 
-                            href="{% if menu.clsf %}#{% else %}/classification{% endif %}">분류</a>
-                    </li> -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {% if menu.clsf %}active{% endif %}" 
                            data-toggle="dropdown" href="#">분류</a>
@@ -62,13 +58,17 @@
                         <a class="nav-link {% if menu.clst %}active{% endif %}"
                             href="{% if menu.clst %}#{% else %}/clustering{% endif %}">군집화</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if menu.spam %}active{% endif %}"
+                            href="{% if menu.spam %}#{% else %}/spam{% endif %}">SPAM</a>
+                    </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">멤버</a>
+                        <a class="nav-link dropdown-toggle {% if menu.user %}active{% endif %}" data-toggle="dropdown" href="#">멤버</a>
                         <div class="dropdown-menu">
-                        <a class="dropdown-item" href="/user/이준영">이준영</a>
-                        <a class="dropdown-item" href="/user/김동익">김동익</a>
-                        <a class="dropdown-item" href="/user/박다인">박다인</a>
-                        <a class="dropdown-item" href="/user/김유은">김유은</a>
+                        <a class="dropdown-item" href="/member/이준영">이준영</a>
+                        <a class="dropdown-item" href="/member/김동익">김동익</a>
+                        <a class="dropdown-item" href="/member/박다인">박다인</a>
+                        <a class="dropdown-item" href="/member/김유은">김유은</a>
                         </div>
                     </li>
                 </ul>

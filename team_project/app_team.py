@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 import os
 import joblib
 import numpy as np
@@ -10,12 +10,22 @@ from konlpy.tag import Okt
 from tensorflow import keras
 from keras.models import load_model
 from keras.applications.vgg16 import VGG16, decode_predictions
+from clu_util import cluster_util
+#from spam_util import spam_mail_util
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.naive_bayes import MultinomialNB  
+from sklearn.metrics import accuracy_score  
+from sklearn.model_selection import train_test_split
 
 app = Flask(__name__)
 app.debug = True
 
 vgg = VGG16()
 okt = Okt()
+
 movie_lr = None
 movie_lr_dtm = None
 
@@ -55,30 +65,54 @@ def load_iris():
     model_iris_dt = joblib.load(os.path.join(app.root_path, 'model/iris_dt.pkl'))
     model_iris_deep = load_model(os.path.join(app.root_path, 'model/iris_deep.hdf5'))
 
+# mail_nb = None
+# def load_mail_nb():
+#     global mail_nb
+#     mail_nb = joblib.load(os.path.join(app.root_path, 'model/mail_nb.pkl'))
 
 @app.route('/')
 def index():
-    menu = {'home':True, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':False, 'user':False}
+    menu = {'home':True, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':False, 'spam':False, 'user':False}
     return render_template('home.html', menu=menu)
+
+# @app.route('/regression', methods=['GET', 'POST'])
+# def regression():
+#     menu = {'home':False, 'rgrs':True, 'stmt':False, 'clsf':False, 'clst':False, 'user':False}
+#     if request.method == 'GET':
+#         return render_template('regression.html', menu=menu)
+#     else:
+#         sp_names = ['Setosa', 'Versicolor', 'Virginica']
+#         slen = float(request.form['slen'])      # Sepal Length
+#         plen = float(request.form['plen'])      # Petal Length
+#         pwid = float(request.form['pwid'])      # Petal Width
+#         sp = int(request.form['species'])       # Species
+#         species = sp_names[sp]
+#         swid = 0.63711424 * slen - 0.53485016 * plen + 0.55807355 * pwid - 0.12647156 * sp + 0.78264901
+#         swid = round(swid, 4)
+#         iris = {'slen':slen, 'swid':swid, 'plen':plen, 'pwid':pwid, 'species':species}
+#         return render_template('reg_result.html', menu=menu, iris=iris)
 
 @app.route('/regression', methods=['GET', 'POST'])
 def regression():
-    menu = {'home':False, 'rgrs':True, 'stmt':False, 'clsf':False, 'clst':False, 'user':False}
+    menu = {'home':False, 'rgrs':True, 'stmt':False, 'clsf':False, 'clst':False, 'spam':False, 'user':False}
     if request.method == 'GET':
         return render_template('regression.html', menu=menu)
     else:
-        names = ['Setosa', 'Versicolor', 'Virginica']
-        slen = float(request.form['slen'])
-        plen = float(request.form['plen'])
-        pwid = float(request.form['pwid'])
-        swid = 0.63711424 * slen - 0.535485016 * plen + 0.55807335 * pwid - 0.12647156 * species + 0.78264901
-        species = names[species]
-        iris = {'slen':slen, 'swid':round(swid, 4), 'plen':plen, 'pwid':pwid, 'species':species}
+        sp_names = ['Setosa', 'Versicolor', 'Virginica']
+        slen = float(request.form['slen'])      # Sepal Length
+        swid = float(request.form['swid'])      # Petal Width
+        plen = float(request.form['plen'])      # Petal Length
+        sp = int(request.form['species'])       # Species
+        species = sp_names[sp]
+        pwid = -0.12783875 * slen + 0.18177682 * swid + 0.32222156 * plen + 0.34709151 * sp -0.16986229175897916
+        pwid = round(pwid, 4)
+        iris = {'slen':slen, 'swid':swid, 'plen':plen, 'pwid':pwid, 'species':species}
         return render_template('reg_result.html', menu=menu, iris=iris)
+
 
 @app.route('/sentiment', methods=['GET', 'POST'])
 def sentiment():
-    menu = {'home':False, 'rgrs':False, 'stmt':True, 'clsf':False, 'clst':False, 'user':False}
+    menu = {'home':False, 'rgrs':False, 'stmt':True, 'clsf':False, 'clst':False, 'spam':False, 'user':False}
     if request.method == 'GET':
         return render_template('sentiment.html', menu=menu)
     else:
@@ -101,7 +135,7 @@ def sentiment():
 
 @app.route('/classification', methods=['GET', 'POST'])
 def classification():
-    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':True, 'clst':False, 'user':False}
+    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':True, 'clst':False, 'spam':False, 'user':False}
     if request.method == 'GET':
         return render_template('classification.html', menu=menu)
     else:
@@ -121,7 +155,7 @@ def classification():
 
 @app.route('/classification_iris', methods=['GET', 'POST'])
 def classification_iris():
-    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':True, 'clst':False, 'user':False}
+    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':True, 'clst':False, 'spam':False, 'user':False}
     if request.method == 'GET':
         return render_template('classification_iris.html', menu=menu)
     else:
@@ -140,46 +174,88 @@ def classification_iris():
                 'species_dt':species_dt, 'species_deep':species_deep}
         return render_template('cla_iris_result.html', menu=menu, iris=iris)        
 
-@app.route('/clustering')
+@app.route('/clustering', methods=['GET', 'POST'])
 def clustering():
-    pass
-
-
-@app.route('/user/이준영')
-def jun():
-    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':False, 'user':True}
-    if request.method == 'GET':
-        return render_template('user/이준영.html', menu=menu)
+    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':True, 'spam':False, 'user':False}
+    if request.method=='GET':
+        return render_template('clustering.html', menu=menu)
     else:
-        pass
+        f = request.files['csv']
+        filename = os.path.join(app.root_path, 'static/images/uploads/') + \
+                    secure_filename(f.filename)
+        f.save(filename)
+        ncls = int(request.form['K'])
+        cluster_util(app, ncls, secure_filename(f.filename))
+        img_file = os.path.join(app.root_path, 'static/images/kmc.png')
+        mtime = int(os.stat(img_file).st_mtime)
+        return render_template('clu_result.html', menu=menu, K=ncls, mtime=mtime)
 
 
-@app.route('/user/김동익')
-def dong():
-    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':False, 'user':True}
-    if request.method == 'GET':
-        return render_template('user/김동익.html', menu=menu)
+@app.route('/spam', methods=['GET', 'POST'])
+def spam():
+    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':False, 'spam':True, 'user':False}
+    if request.method=='GET':
+        return render_template('spam.html', menu=menu)
     else:
-        pass
+        f = request.files['csv']
+        filename = os.path.join(app.root_path, 'data/') + secure_filename(f.filename)
+        f.save(filename)
 
-@app.route('/user/박다인')
-def da():
-    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':False, 'user':True}
-    if request.method == 'GET':
-        return render_template('user/박다인.html', menu=menu)
-    else:
-        pass
+        df = pd.read_csv(filename, encoding='latin1')
 
-@app.route('/user/김유은')
-def yu():
-    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':False, 'user':True}
-    if request.method == 'GET':
-        return render_template('user/김유은.html', menu=menu)
-    else:
-        pass
+        del df['Unnamed: 2']
+        del df['Unnamed: 3']
+        del df['Unnamed: 4']
+        df['v1'] = df['v1'].replace(['ham','spam'],[0,1])
+
+        df = df.drop_duplicates('v2', keep='first')
+
+        X_data = df['v2']
+        y_data = df['v1']
+
+        X_train, X_test, y_train, y_test = \
+            train_test_split(X_data, y_data, test_size=.2, random_state=2020)
+
+        dtmvector = CountVectorizer()
+        X_train_dtm = dtmvector.fit_transform(X_train)
+        
+        model = MultinomialNB()
+        model.fit(X_train_dtm, y_train)
+        X_test_dtm = dtmvector.transform(X_test)
+        predicted = model.predict(X_test_dtm)
+
+        acc1 = accuracy_score(y_test, predicted)
+
+        tfidf_transformer = TfidfTransformer()
+        tfidfv = tfidf_transformer.fit_transform(X_train_dtm)   
+        model.fit(tfidfv, y_train)
+        tfidfv_test = tfidf_transformer.fit_transform(X_test_dtm)
+        predicted = model.predict(tfidfv_test)
+
+        acc2 = accuracy_score(y_test, predicted)
+        # f = request.files['csv']
+        # filename = os.path.join(app.root_path, 'data/') + \
+        #     secure_filename(f.filename)
+        # f.save(filename)
+
+        # review_nb = nb_transform(review)
+        # review_nb_dtm = movie_nb_dtm.transform([review_nb])
+        # result_nb = res_str[movie_nb.predict(review_nb_dtm)[0]]
+
+        # n = request.get_data('acc')
+        # spam_mail_util(app, n, secure_filename(f.filename))
+        return render_template('spam_result.html', menu=menu, acc1 = acc1, acc2 = acc2)
+
+
+@app.route('/member/<name>')
+def member(name):
+    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':False, 'mail':False, 'user':True}
+    return render_template('user.html', menu=menu, name=name)
+
 
 if __name__ == '__main__':
     load_movie_lr()
     load_movie_nb()
+    # load_mail_nb()
     load_iris()
-    app.run() ## deburg = true : 개발모드
+    app.run() ## deburg = true : 개발모드 , host='0.0.0.0' = 외부접속허용

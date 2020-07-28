@@ -1,6 +1,6 @@
 {% extends "base_team.html" %}
 {% block subtitle %}
-    <strong>다중 선형회귀</strong> - <small>Iris Sepal Width는?</small>
+    <strong>다중 선형회귀</strong> - <small>Iris Petal Width는?</small>
 {% endblock %}
 {% block content %}
     <div class="row">
@@ -14,15 +14,15 @@
                             placeholder="Sepal Length" name="slen"></td>
                     </tr>
                     <tr>
+                        <td>Sepal Width</td>
+                        <td><input type="text" id="swid" class="form-control" 
+                            placeholder="Sepal Width" name="swid"></td>
+                    </tr>	
+                    <tr>
                         <td>Petal Length</td>
                         <td><input type="text" id="plen" class="form-control" 
                             placeholder="Petal Length" name="plen"></td>
-                    </tr>
-                    <tr>
-                        <td>Petal Width</td>
-                        <td><input type="text" id="pwid" class="form-control" 
-                            placeholder="Petal Width" name="pwid"></td>
-                    </tr>					
+                    </tr>				
                     <tr>
                         <td>품종</td>
                         <td>

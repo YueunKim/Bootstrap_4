@@ -1,6 +1,6 @@
 {% extends "base_team.html" %}
 {% block subtitle %}
-    <strong>다중 선형회귀</strong> - <small>Iris Sepal Width 결과</small>
+    <strong>다중 선형회귀</strong> - <small>Iris Petal Width 결과</small>
 {% endblock %}
 {% block content %}
     <div class="row">
@@ -11,16 +11,16 @@
                     <td>Sepal Length</td>
                     <td>{{ iris.slen }}</td>
                 </tr>
-                <tr class="alert alert-warning">
-                    <td><strong>Sepal Width</strong></td>
-                    <td><strong>{{ iris.swid }}</strong></td>
+                <tr>
+                    <td>Sepal Width</td>
+                    <td>{{ iris.swid }}</td>
                 <tr>
                     <td>Petal Length</td>
                     <td>{{ iris.plen }}</td>
                 </tr>
-                <tr>
-                    <td>Petal Width</td>
-                    <td>{{ iris.pwid }}</td>
+                <tr class="alert alert-warning">
+                    <td><strong>Petal Width</strong></td>
+                    <td><strong>{{ iris.pwid }}</strong></td>
                 </tr>					
                 <tr>
                     <td>품종</td>

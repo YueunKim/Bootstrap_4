@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 import os
 import joblib
 import numpy as np
@@ -10,6 +10,7 @@ from konlpy.tag import Okt
 from tensorflow import keras
 from keras.models import load_model
 from keras.applications.vgg16 import VGG16, decode_predictions
+from clu_util import cluster_util
 
 app = Flask(__name__)
 app.debug = True
@@ -67,13 +68,15 @@ def regression():
     if request.method == 'GET':
         return render_template('regression.html', menu=menu)
     else:
-        names = ['Setosa', 'Versicolor', 'Virginica']
-        slen = float(request.form['slen'])
-        plen = float(request.form['plen'])
-        pwid = float(request.form['pwid'])
-        swid = 0.63711424 * slen - 0.535485016 * plen + 0.55807335 * pwid - 0.12647156 * species + 0.78264901
-        species = names[species]
-        iris = {'slen':slen, 'swid':round(swid, 4), 'plen':plen, 'pwid':pwid, 'species':species}
+        sp_names = ['Setosa', 'Versicolor', 'Virginica']
+        slen = float(request.form['slen'])      # Sepal Length
+        plen = float(request.form['plen'])      # Petal Length
+        pwid = float(request.form['pwid'])      # Petal Width
+        sp = int(request.form['species'])       # Species
+        species = sp_names[sp]
+        swid = 0.63711424 * slen - 0.53485016 * plen + 0.55807355 * pwid - 0.12647156 * sp + 0.78264901
+        swid = round(swid, 4)
+        iris = {'slen':slen, 'swid':swid, 'plen':plen, 'pwid':pwid, 'species':species}
         return render_template('reg_result.html', menu=menu, iris=iris)
 
 @app.route('/sentiment', methods=['GET', 'POST'])
@@ -140,9 +143,21 @@ def classification_iris():
                 'species_dt':species_dt, 'species_deep':species_deep}
         return render_template('cla_iris_result.html', menu=menu, iris=iris)        
 
-@app.route('/clustering')
+@app.route('/clustering', methods=['GET', 'POST'])
 def clustering():
-    pass
+    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':True, 'user':False}
+    if request.method=='GET':
+        return render_template('clustering.html', menu=menu)
+    else:
+        f = request.files['csv']
+        filename = os.path.join(app.root_path, 'static/images/uploads/') + \
+                    secure_filename(f.filename)
+        f.save(filename)
+        ncls = int(request.form['K'])
+        cluster_util(app, ncls, secure_filename(f.filename))
+        img_file = os.path.join(app.root_path, 'static/images/kmc.png')
+        mtime = int(os.stat(img_file).st_mtime)
+        return render_template('clu_result.html', menu=menu, K=ncls, mtime=mtime)
 
 if __name__ == '__main__':
     load_movie_lr()

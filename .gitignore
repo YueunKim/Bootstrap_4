@@ -17,6 +17,7 @@ santander/
 preview/
 images/
 Excercise/static/
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
