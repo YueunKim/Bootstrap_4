@@ -11,11 +11,12 @@ from tensorflow import keras
 from keras.models import load_model
 from keras.applications.vgg16 import VGG16, decode_predictions
 from clu_util import cluster_util
-#from spam_util import spam_mail_util
+from spam_util import spam_mail_util
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB  
 from sklearn.metrics import accuracy_score  
 from sklearn.model_selection import train_test_split
@@ -26,9 +27,30 @@ app.debug = True
 vgg = VGG16()
 okt = Okt()
 
+
+
+
+
+mail_cv = None
+mail_cv_dtm = None
+def load_mail_cv():
+    global mail_cv, mail_cv_dtm
+    mail_cv = joblib.load(os.path.join(app.root_path, 'model/mail_cv.pkl'))
+    mail_cv_dtm = joblib.load(os.path.join(app.root_path, 'model/mail_cv_dtm.pkl'))
+
+# mail_tf = None
+# mail_tf_dtm = None
+# def load_mail_tf():
+#     global mail_tf, mail_tf_dtm
+#     mail_tf = joblib.load(os.path.join(app.root_path, 'model/mail_tf.pkl'))
+#     mail_tf_dtm = joblib.load(os.path.join(app.root_path, 'model/mail_tf_dtm.pkl'))
+
+
+
+
+
 movie_lr = None
 movie_lr_dtm = None
-
 def load_movie_lr():
     global movie_lr, movie_lr_dtm
     movie_lr = joblib.load(os.path.join(app.root_path, 'model/movie_lr.pkl'))
@@ -75,28 +97,31 @@ def index():
     menu = {'home':True, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':False, 'spam':False, 'user':False}
     return render_template('home.html', menu=menu)
 
-# @app.route('/regression', methods=['GET', 'POST'])
-# def regression():
-#     menu = {'home':False, 'rgrs':True, 'stmt':False, 'clsf':False, 'clst':False, 'user':False}
-#     if request.method == 'GET':
-#         return render_template('regression.html', menu=menu)
-#     else:
-#         sp_names = ['Setosa', 'Versicolor', 'Virginica']
-#         slen = float(request.form['slen'])      # Sepal Length
-#         plen = float(request.form['plen'])      # Petal Length
-#         pwid = float(request.form['pwid'])      # Petal Width
-#         sp = int(request.form['species'])       # Species
-#         species = sp_names[sp]
-#         swid = 0.63711424 * slen - 0.53485016 * plen + 0.55807355 * pwid - 0.12647156 * sp + 0.78264901
-#         swid = round(swid, 4)
-#         iris = {'slen':slen, 'swid':swid, 'plen':plen, 'pwid':pwid, 'species':species}
-#         return render_template('reg_result.html', menu=menu, iris=iris)
 
-@app.route('/regression', methods=['GET', 'POST'])
-def regression():
+
+@app.route('/regression_swid', methods=['GET', 'POST'])
+def regression_swid():
+    menu = {'home':False, 'rgrs':True, 'stmt':False, 'clsf':False, 'clst':False, 'user':False}
+    if request.method == 'GET':
+        return render_template('regression_swid.html', menu=menu)
+    else:
+        sp_names = ['Setosa', 'Versicolor', 'Virginica']
+        slen = float(request.form['slen'])      # Sepal Length
+        plen = float(request.form['plen'])      # Petal Length
+        pwid = float(request.form['pwid'])      # Petal Width
+        sp = int(request.form['species'])       # Species
+        species = sp_names[sp]
+        swid = 0.63711424 * slen - 0.53485016 * plen + 0.55807355 * pwid - 0.12647156 * sp + 0.78264901
+        swid = round(swid, 4)
+        iris = {'slen':slen, 'swid':swid, 'plen':plen, 'pwid':pwid, 'species':species}
+        return render_template('reg_result_swid.html', menu=menu, iris=iris)
+
+
+@app.route('/regression_pwid', methods=['GET', 'POST'])
+def regression_pwid():
     menu = {'home':False, 'rgrs':True, 'stmt':False, 'clsf':False, 'clst':False, 'spam':False, 'user':False}
     if request.method == 'GET':
-        return render_template('regression.html', menu=menu)
+        return render_template('regression_pwid.html', menu=menu)
     else:
         sp_names = ['Setosa', 'Versicolor', 'Virginica']
         slen = float(request.form['slen'])      # Sepal Length
@@ -107,7 +132,7 @@ def regression():
         pwid = -0.12783875 * slen + 0.18177682 * swid + 0.32222156 * plen + 0.34709151 * sp -0.16986229175897916
         pwid = round(pwid, 4)
         iris = {'slen':slen, 'swid':swid, 'plen':plen, 'pwid':pwid, 'species':species}
-        return render_template('reg_result.html', menu=menu, iris=iris)
+        return render_template('reg_result_pwid.html', menu=menu, iris=iris)
 
 
 @app.route('/sentiment', methods=['GET', 'POST'])
@@ -199,52 +224,58 @@ def spam():
     else:
         f = request.files['csv']
         filename = os.path.join(app.root_path, 'data/') + secure_filename(f.filename)
-        f.save(filename)
-
-        df = pd.read_csv(filename, encoding='latin1')
-
-        del df['Unnamed: 2']
-        del df['Unnamed: 3']
-        del df['Unnamed: 4']
-        df['v1'] = df['v1'].replace(['ham','spam'],[0,1])
-
-        df = df.drop_duplicates('v2', keep='first')
-
-        X_data = df['v2']
-        y_data = df['v1']
-
-        X_train, X_test, y_train, y_test = \
-            train_test_split(X_data, y_data, test_size=.2, random_state=2020)
-
-        dtmvector = CountVectorizer()
-        X_train_dtm = dtmvector.fit_transform(X_train)
-        
-        model = MultinomialNB()
-        model.fit(X_train_dtm, y_train)
-        X_test_dtm = dtmvector.transform(X_test)
-        predicted = model.predict(X_test_dtm)
-
-        acc1 = accuracy_score(y_test, predicted)
-
-        tfidf_transformer = TfidfTransformer()
-        tfidfv = tfidf_transformer.fit_transform(X_train_dtm)   
-        model.fit(tfidfv, y_train)
-        tfidfv_test = tfidf_transformer.fit_transform(X_test_dtm)
-        predicted = model.predict(tfidfv_test)
-
-        acc2 = accuracy_score(y_test, predicted)
-        # f = request.files['csv']
-        # filename = os.path.join(app.root_path, 'data/') + \
-        #     secure_filename(f.filename)
-        # f.save(filename)
-
-        # review_nb = nb_transform(review)
-        # review_nb_dtm = movie_nb_dtm.transform([review_nb])
-        # result_nb = res_str[movie_nb.predict(review_nb_dtm)[0]]
-
+        #f.save(filename)
         # n = request.get_data('acc')
-        # spam_mail_util(app, n, secure_filename(f.filename))
-        return render_template('spam_result.html', menu=menu, acc1 = acc1, acc2 = acc2)
+        acc1 = spam_mail_util(app, secure_filename(f.filename))[0]
+        acc2 = spam_mail_util(app, secure_filename(f.filename))[1]
+        return render_template('spam_result.html', menu=menu, acc1 = round(acc1,4), acc2 = round(acc2,4))
+
+@app.route('/spam_self', methods=['GET', 'POST'])
+def spam_self():
+    menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':False, 'spam':True, 'user':False}
+    if request.method=='GET':
+        return render_template('spam_self.html', menu=menu)
+    else:
+        res_str = ['HAM','SPAM']
+        write = request.form['write'] # STRING이므로 변환필요없음
+
+        # dtmvector = CountVectorizer()
+        # X_train_dtm = dtmvector.fit_transform(X_train)
+        
+        # model = MultinomialNB()
+        # model.fit(X_train_dtm, y_train)
+        # X_test_dtm = dtmvector.transform(X_test)
+        # result_cv = model.predict(X_test_dtm)
+
+        # acc1 = accuracy_score(y_test, predicted1)
+
+        # tfidf_transformer = TfidfTransformer()
+        # tfidfv = tfidf_transformer.fit_transform(X_train_dtm)   
+        # model.fit(tfidfv, y_train)
+        # tfidfv_test = tfidf_transformer.fit_transform(X_test_dtm)
+        # result_tf = model.predict(tfidfv_test)
+
+        # acc2 = accuracy_score(y_test, predicted2)
+
+
+
+
+        # CV 처리
+        # write_cv = re.sub(r"\d+", " ", write)
+        write_cv_dtm = mail_cv_dtm.transform([write])
+        result_cv = res_str[mail_cv.predict(write_cv_dtm)[0]]
+
+        # TF 처리
+        # write_tf = nb_transform(write)
+        # x = mail_tf_dtm.transform(['write'])
+        # write_tf_dtm = tfidf_transformer.transform(x)   
+
+        # write_tf_dtm = mail_tf_dtm.transform([write])
+        # result_tf = res_str[mail_tf.predict(write_tf_dtm)[0]]
+
+        # 결과처리 'result_tf':result_tf
+        mail = {'write':write, 'result_cv':result_cv}
+        return render_template('spam_self_result.html', menu=menu, mail=mail)
 
 
 @app.route('/member/<name>')
@@ -256,6 +287,8 @@ def member(name):
 if __name__ == '__main__':
     load_movie_lr()
     load_movie_nb()
+    load_mail_cv()
+    # load_mail_tf()
     # load_mail_nb()
     load_iris()
     app.run() ## deburg = true : 개발모드 , host='0.0.0.0' = 외부접속허용

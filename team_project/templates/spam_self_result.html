@@ -1,0 +1,32 @@
+{% extends "base_team.html" %}
+{% block subtitle %}
+    <strong>메일 입력</strong> - <small>분류 결과</small>
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-1"></div>
+        <div class="col-8">
+            <table class="table table-borderless">
+                <tr class = "d-flex">
+                    <td class="col-4">메일 입력</td>
+                    <td class="col-8">{{ mail.write }}</td>
+                </tr>
+                <tr class = "d-flex alert alert-warning">
+                    <td class="col-4"><strong>CountVectorizer</strong></td>
+                    <td class="col-8"><strong>{{ mail.result_cv }}</strong></td>
+                </tr>
+                <!-- <tr class = "d-flex alert alert-info">
+                    <td class="col-4"><strong>TF-IDF</strong></td>
+                    <td class="col-8"><strong>{{ mail.result_tf }}</strong></td>
+                </tr> -->
+                <tr>    
+                    <td colspan="2" style="text-align: center;">
+                        <button class="btn btn-primary"
+                                onclick="location.href='/spam_self'">재실행</button>
+                    </td>
+                </tr>		
+            </form>
+        </div>
+        <div class="col-3"></div>
+    </div>                
+{% endblock %}

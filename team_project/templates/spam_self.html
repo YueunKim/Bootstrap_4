@@ -1,0 +1,26 @@
+{% extends "base_team.html" %}
+{% block subtitle %}
+<strong>메일 입력</strong> - <small>CountVectorizer를 이용한 Spam Mail 분류</small>
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-1"></div>
+        <div class="col-8">
+            <form action="/spam_self" method="POST">
+                <table class="table table-borderless">
+                    <tr>
+                        <td>메일 입력</td>
+                        <td><textarea class="form-control" rows="5" name = "write"></textarea></td>
+                    </tr>
+                    <tr>    
+                        <td colspan="2" style="text-align: center;">
+                            <button type="submit" class="btn btn-primary">실행</button>&nbsp;&nbsp;&nbsp;
+                            <button type="reset" class="btn btn-secondary">취소</button>
+                        </td>
+                    </tr>
+                </table>		
+            </form>
+        </div>
+        <div class="col-3"></div>
+    </div>                
+{% endblock %}

@@ -1,18 +1,18 @@
 {% extends "base_team.html" %}
 {% block subtitle %}
-<strong>Spam Mail</strong> - <small>정확도 결과</small>
+    <strong>Spam Mail</strong> - <small>정확도 결과</small>
 {% endblock %}
 {% block content %}
     <div class="row">
         <div class="col-11"></div>
-                <table class="table">
-                    <tr class="alert alert-warning">
-                        <td style="text-align: center;"><strong>CountVectorizer</strong></td>
-                        <td style="text-align: center;"><strong>{{acc1}}</strong></td>
+                <table class="table table-borderless">
+                    <tr class="d-flex alert alert-warning">
+                        <td class="col-4" style="text-align: center;"><strong>CountVectorizer</strong></td>
+                        <td class="col-8" style="text-align: center;"><strong>{{acc1}}</strong></td>
                     </tr>
-                    <tr class="alert alert-warning">
-                        <td style="text-align: center;"><strong>TF-IDF</strong></td>
-                        <td style="text-align: center;"><strong>{{acc2}}</strong></td>
+                    <tr class="d-flex alert alert-info">
+                        <td class="col-4" style="text-align: center;"><strong>TF-IDF</strong></td>
+                        <td class="col-8" style="text-align: center;"><strong>{{acc2}}</strong></td>
                     </tr>
                     <tr>    
                         <td colspan="2" style="text-align: center;">
