@@ -236,7 +236,7 @@ def spam_self():
     if request.method=='GET':
         return render_template('spam_self.html', menu=menu)
     else:
-        res_str = ['HAM','SPAM']
+        res_str = ['일반메일입니다~','스팸이에요 버리세요!!']
         write = request.form['write'] # STRING이므로 변환필요없음
 
         # dtmvector = CountVectorizer()
