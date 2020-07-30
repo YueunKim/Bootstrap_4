@@ -1,0 +1,26 @@
+{% extends "base_team.html" %}
+{% block subtitle %}
+    <strong>news분석</strong> - <small>real or fake</small>
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-1"></div>
+        <div class="col-8">
+            <form action="/news" method="POST">
+                <table class="table table-borderless">
+                    <tr>
+                        <td>news</td>
+                        <td><textarea class="form-control" rows="5" name = "write"></textarea></td>
+                    </tr>
+                    <tr>    
+                        <td colspan="2" style="text-align: center;">
+                            <button type="submit" class="btn btn-primary">실행</button>&nbsp;&nbsp;&nbsp;
+                            <button type="reset" class="btn btn-secondary">취소</button>
+                        </td>
+                    </tr>
+                </table>		
+            </form>
+        </div>
+        <div class="col-3"></div>
+    </div>                
+{% endblock %}

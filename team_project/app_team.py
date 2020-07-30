@@ -21,13 +21,19 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score  
 from sklearn.model_selection import train_test_split
 
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+
 app = Flask(__name__)
 app.debug = True
 
 vgg = VGG16()
 okt = Okt()
 
-
+model_news = None 
+def load_news():
+    global model_news
+    model_news = load_model(os.path.join(app.root_path, 'model/checkpoint-epoch-10-batch-60-trial-0011.hdf5'))
 
 
 
@@ -257,9 +263,6 @@ def spam_self():
 
         # acc2 = accuracy_score(y_test, predicted2)
 
-
-
-
         # CV 처리
         # write_cv = re.sub(r"\d+", " ", write)
         write_cv_dtm = mail_cv_dtm.transform([write])
@@ -277,6 +280,23 @@ def spam_self():
         mail = {'write':write, 'result_cv':result_cv}
         return render_template('spam_self_result.html', menu=menu, mail=mail)
 
+# @app.route('/news', methods=['GET', 'POST'])
+# def news():
+#     menu = {'home':False, 'rgrs':False, 'stmt':False, 'clsf':False, 'clst':False, 'spam':False, 'user':False, 'news':True}
+#     if request.method=='GET':
+    
+#         return render_template('news.html', menu=menu)
+#     else:
+#         res_str = ['1','0']
+#         news = request.form['write'] 
+
+#         wow = res_str[model_news.predict_classes([np.array(news)][0])]
+
+#         # 결과처리
+#         news = {'write':write, 'wow':wow}
+#         return render_template('news_result.html', menu=menu, news=news)
+
+
 
 @app.route('/member/<name>')
 def member(name):
@@ -288,6 +308,7 @@ if __name__ == '__main__':
     load_movie_lr()
     load_movie_nb()
     load_mail_cv()
+    load_news()
     # load_mail_tf()
     # load_mail_nb()
     load_iris()

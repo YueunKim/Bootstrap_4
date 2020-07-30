@@ -1,0 +1,28 @@
+{% extends "base_team.html" %}
+{% block subtitle %}
+    <strong>news분석</strong> - <small>결과</small>
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-1"></div>
+        <div class="col-8">
+            <table class="table table-borderless">
+                <tr class = "d-flex">
+                    <td class="col-4">news분석</td>
+                    <td class="col-8">{{ news.write }}</td>
+                </tr>
+                <tr class = "d-flex alert alert-warning">
+                    <td class="col-4"><strong>real = 1, fake = 0</strong></td>
+                    <td class="col-8"><strong>{{ news.wow }}</strong></td>
+                </tr>
+                <tr>    
+                    <td colspan="2" style="text-align: center;">
+                        <button class="btn btn-primary"
+                                onclick="location.href='/sentiment'">재실행</button>
+                    </td>
+                </tr>		
+            </form>
+        </div>
+        <div class="col-3"></div>
+    </div>                
+{% endblock %}
